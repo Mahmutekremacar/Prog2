@@ -5,70 +5,59 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class client {
-
     public static void main(String[] args) {
+        final String SERVER_IP = "localhost";
+        final int SERVER_PORT = 1234;
 
-        Socket socket = null;
-        InputStreamReader inputStreamReader = null;
-        OutputStreamWriter outputStreamWriter = null;
-        BufferedReader bufferedReader = null;
-        BufferedWriter bufferedWriter = null;
+        try (
+                Socket socket = new Socket(SERVER_IP, SERVER_PORT);
+                BufferedReader serverReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                BufferedWriter serverWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                Scanner scanner = new Scanner(System.in)
+        ) {
+            System.out.println("Connected to Hangman Server ✅");
 
+            String serverMessage;
 
-        try{
-            socket = new Socket("localhost", 1234);
-
-
-            inputStreamReader = new InputStreamReader(socket.getInputStream());
-            outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-
-            bufferedReader = new BufferedReader(inputStreamReader);
-            bufferedWriter = new BufferedWriter(outputStreamWriter);
-
-            Scanner scanner = new Scanner(System.in);
-
-            while (true){
-
-
-                String msgToSend = scanner.nextLine();
-                bufferedWriter.write(msgToSend);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-
-                System.out.println("Sever" + bufferedReader.readLine());
-
-                if (msgToSend.equalsIgnoreCase("BYE")) {
-
-                    break;
-                }
-                }
-
-            } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            try{
-                if(socket != null){
-                    socket.close();
-                }
-                if(inputStreamReader != null){
-                    inputStreamReader.close();
-                }
-                if (outputStreamWriter != null){
-                    outputStreamWriter.close();
-                }
-                if (bufferedReader != null){
-                    bufferedReader.close();
-                }
-                if (bufferedWriter != null){
-                    bufferedWriter.close();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            // Print initial messages from server (welcome, instructions)
+            while ((serverMessage = serverReader.readLine()) != null) {
+                System.out.println("Server: " + serverMessage);
+                if (serverMessage.contains("Guess a letter:")) break; // wait for game start
             }
+
+            // Game loop
+            while (true) {
+                System.out.print("Your guess (type a letter or BYE): ");
+                String userInput = scanner.nextLine().trim();
+
+                // Send input to server
+                serverWriter.write(userInput);
+                serverWriter.newLine();
+                serverWriter.flush();
+
+                // Read and display server responses
+                while ((serverMessage = serverReader.readLine()) != null) {
+                    System.out.println("Server: " + serverMessage);
+
+                    // Game ends if server says game over or win
+                    if (serverMessage.contains("GAME END") ||
+                            serverMessage.contains("won") ||
+                            serverMessage.contains("Game over")) {
+                        return; // exit program
+                    }
+
+                    // If server now expects another letter, we break to prompt input again
+                    if (serverMessage.startsWith("Word:") ||
+                            serverMessage.startsWith("❌") ||
+                            serverMessage.startsWith("🔁") ||
+                            serverMessage.startsWith("⚠️")) {
+                        break;
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("❌ Connection error: " + e.getMessage());
         }
-
     }
-
-
 }
