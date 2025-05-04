@@ -27,11 +27,20 @@ public class server {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-                    bufferedWriter.write("🎮 Welcome to Hangman!");
+                    bufferedWriter.write(" Welcome to Hangman!");
                     bufferedWriter.newLine();
                     bufferedWriter.write("Guess a letter:");
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
+
+//                    StringBuilder starter = null;
+//                    for (int i =0; i < originalWord.length(); i++){
+//                        starter.append("_ ");
+//                    }
+//
+//                    bufferedWriter.write(starter.toString());
+//                    bufferedWriter.newLine();
+
 
                     while (remainingTries > 0) {
                         String msgFromClient = bufferedReader.readLine();
@@ -42,17 +51,19 @@ public class server {
 
                         msgFromClient = msgFromClient.trim().toLowerCase();
 
-                        if (msgFromClient.length() != 1 || !Character.isLetter(msgFromClient.charAt(0))) {
-                            bufferedWriter.write("⚠️ Please enter a single valid letter.");
+                        char guessed = msgFromClient.charAt(0);
+
+                        if (msgFromClient.length() != 1 || !Character.isLetter(guessed)) {
+                            bufferedWriter.write("Please enter a single valid letter.");
                             bufferedWriter.newLine();
                             bufferedWriter.flush();
                             continue;
                         }
 
-                        char guessed = msgFromClient.charAt(0);
+
 
                         if (guessedLetters.contains(guessed)) {
-                            bufferedWriter.write("🔁 Already guessed '" + guessed + "'. Try another.");
+                            bufferedWriter.write("Already guessed '" + guessed + "'. Try another.");
                             bufferedWriter.newLine();
                             bufferedWriter.flush();
                             continue;
@@ -62,7 +73,7 @@ public class server {
 
                         if (!originalWord.contains(String.valueOf(guessed))) {
                             remainingTries--;
-                            bufferedWriter.write("❌ Wrong! Remaining tries: " + remainingTries);
+                            bufferedWriter.write(" Wrong! Remaining tries: " + remainingTries);
                             bufferedWriter.newLine();
                         }
 
@@ -84,13 +95,13 @@ public class server {
                         bufferedWriter.newLine();
 
                         if (won) {
-                            bufferedWriter.write("🎉 You won! The word was: " + originalWord);
+                            bufferedWriter.write( "You won! The word was: " + originalWord);
                             bufferedWriter.newLine();
                             break;
                         }
 
                         if (remainingTries == 0) {
-                            bufferedWriter.write("💀 Game over. The word was: " + originalWord);
+                            bufferedWriter.write(" Game over. The word was: " + originalWord);
                             bufferedWriter.newLine();
                         }
 

@@ -43,7 +43,6 @@ public class Studiengangssplitter {
         }
 
 
-
         reader.close();
         winfWriter.close();
         infWriter.close();
